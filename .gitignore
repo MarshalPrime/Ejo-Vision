@@ -1,0 +1,38 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+dist/
+build/
+.DS_Store
+.env
+output/
+
+# Local datasets — never push recordings or dumps to GitHub
+dataset/
+.dataset
+.dataset/
+data/
+datasets/
+
+# Challenge / Constructor Labs data (recordings, maps, briefing PDFs)
+c0_2026-10-13_22-53-42_camloc/
+23-00-38_cut_120m_update/
+Constructor Labs - Camera-based localization on a race track - INTRO.pdf
+Constructor Labs - Camera-based localization on a race track.pdf
+Constructor Labs - Camera-based localization on a race track - INTRO
+Constructor Labs - Camera-based localization on a race track
+*.mcap
+*.pdf
+
+# Downloaded archives and extracted dump names
+*.zip
+data_odometry*/
+
+*.png
+*.jpg
+*.jpeg
+!tests/fixtures/**

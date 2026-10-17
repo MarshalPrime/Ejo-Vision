@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ejo-vision"
+version = "0.1.0"
+description = "Camera-only localization experiments for the SchubKI 2026 racing challenge"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+    "opencv-python>=4.8",
+    "mcap>=1.2",
+    "mcap-ros2-support>=0.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "ipykernel>=6.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
