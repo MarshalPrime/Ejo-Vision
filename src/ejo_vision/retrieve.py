@@ -37,10 +37,15 @@ def best_past_match(
     query_desc: np.ndarray,
     query_t: int,
     min_age_ns: int,
+    ignore_time: bool = False,
 ) -> tuple[int | None, float]:
-    """Nearest earlier page. Pages newer than query_t - min_age_ns are ignored."""
+    """Nearest earlier page. Pages newer than query_t - min_age_ns are ignored.
+
+    ignore_time is for a book built from another recording. Those pages are not
+    future frames of the drive being localized.
+    """
     index, score, _second_index, _second_score = top_past_matches(
-        book_desc, book_t, query_desc, query_t, min_age_ns
+        book_desc, book_t, query_desc, query_t, min_age_ns, ignore_time=ignore_time
     )
     return index, score
 
@@ -51,12 +56,14 @@ def top_past_matches(
     query_desc: np.ndarray,
     query_t: int,
     min_age_ns: int,
+    ignore_time: bool = False,
 ) -> tuple[int | None, float, int | None, float]:
     """Best and second-best earlier pages."""
     if len(book_desc) == 0:
         return None, -np.inf, None, -np.inf
     sim = book_desc @ query_desc
-    sim = np.where(book_t.astype(np.int64) <= int(query_t) - int(min_age_ns), sim, -np.inf)
+    if not ignore_time:
+        sim = np.where(book_t.astype(np.int64) <= int(query_t) - int(min_age_ns), sim, -np.inf)
     if len(sim) == 1:
         score = float(sim[0])
         return (0, score, None, -np.inf) if np.isfinite(score) else (None, -np.inf, None, -np.inf)

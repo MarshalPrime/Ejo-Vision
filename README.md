@@ -2,6 +2,8 @@
 
 Camera-only localization of a race car on Yas Marina. The result is a pose file: time, `x`, `y`, and `yaw` in the map frame. No GNSS and no lidar are used while the car is moving.
 
+No public dataset is used. No pretrained model is used. The daylight example bag was not used to train, tune, or score anything. `scripts/train_pose_net.py` is an unused trial trained only on this same night run.
+
 The pose file is already in this repository. You only need the large recordings if you want to rebuild it.
 
 ## 1. Read the result
@@ -68,21 +70,34 @@ python 23-00-38_cut_120m_update/tools/evaluate.py \
   output/submission_retrieval_validation.csv
 ```
 
-## 4. Run a different recording
+## 4. Run a recording that has no starting pose
 
-Use the book already in the repository. Pass that recording's own first pose. Do not pass its ground truth.
+The problem statement allows the first pose of a run. A later message from the organizers says the hidden test removes the pose fields and does not give a start. This command covers that case. It does not read position or orientation, and it does not take `--first-x`.
 
 ```bash
 python scripts/retrieve_localize.py \
   --mcap PATH_TO_TEST.mcap \
-  --first-x X --first-y Y --first-yaw YAW \
+  --find-start \
   --output output/submission_test.csv
 ```
 
-`X`, `Y`, and `YAW` are the car's pose at the first speed sample, in the map frame, yaw in radians.
+Leave out `--find-start` and the script still finds the start, as long as you do not pass `--first-x`, `--first-y`, and `--first-yaw`. If you do pass them, that pose is used.
+
+The start comes from speed, yaw rate, and the map. A straight fits every part of the lap, so it is refused. The first place that fits, and whose next-best place is much worse, becomes the start. On this training log that happens at **42.9 s**, on the pit line. After that, a front-camera match may move the car when it lies on the same part of the lap, including from the pit line onto the racing line.
+
+Scored on the training log with no starting pose:
+
+| Window | Position | Sideways | Heading | Inside 1 m |
+|---|---|---|---|---|
+| First 42.9 s, before the turn is unique | 462 m | 438 m | 57° | 4% |
+| After that, until 896 s | 21 m | 16 m | 5.4° | 17% |
+| Held-out laps, 896 s to 1121 s | 3.6 m | 1.0 m | 1.7° | 16% |
+| After 1121 s | 2.5 m | 0.3 m | 0.7° | 38% |
+
+The held-out file for the run that does use the first pose is still `output/submission_retrieval.csv` (about 4.2 m, 0.9 m sideways, inside 1 m on 33% of frames). `output/submission_find_start.csv` is the run with no starting pose. The code reads `vx_mps`, `vy_mps`, and `wz_radps` only. It does not read `x`, `y`, yaw, `s`, or `n` from `/constructor0/state_estimation`.
 
 ## What the method does
 
-The front camera `fl`, speed, yaw rate, and the first pose are the inputs. Every 0.5 s a 48×24 thumbnail is compared with earlier pages of the picture book. A match is kept only when similarity is at least 0.90 and the page is at least 8 s old. Otherwise the car is moved by speed and yaw rate alone.
+The front camera `fl`, speed, and yaw rate are the inputs. Every 0.5 s a 48×24 thumbnail is compared with the picture book. On this same training log a page must be at least 8 s old, so a future frame of this drive is never used. On another recording the book is earlier training, not a future frame, so every page is allowed. A match is kept only when similarity is at least 0.90 and it lies within 30 m, along the lap, of the map place. Otherwise the car stays on the racing line or the pit line.
 
-There is no trained network. `output/picture_book.npz` is the saved lookup. `scripts/train_pose_net.py` was a trial and is not the pose file above.
+There is no trained network. `output/picture_book.npz` is the saved lookup.
