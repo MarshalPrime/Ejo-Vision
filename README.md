@@ -56,4 +56,12 @@ Run checks that do **not** need OpenCV, Matplotlib, or a dataset:
 python3 -m pytest
 ```
 
-The bags, the map file, and `output/` stay on this machine. They are gitignored.
+`output/` is in the repository. It contains the pose files, the validation plot, the picture book, and `gt.csv`.
+
+Three folders stay on the machine that holds the recordings, because they are too large for git:
+
+- `c0_2026-10-13_22-53-42_camloc/` — training bag
+- `23-00-38_cut_120m_update/` — map and the organizers' scoring tools
+- `rosbag_2026-10-13_16-08-46_cameras_lap/` — daylight example bag
+
+With those folders present locally, the two commands above rebuild the book and the pose file. Without them, the committed `output/submission_retrieval.csv` and `output/retrieval_validation_laps.png` are the results to read.
